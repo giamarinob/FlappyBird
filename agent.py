@@ -29,7 +29,7 @@ class Agent:
         num_actions = env.action_space.n
         rewards_per_episode = []
         epsilon_history = []
-        policy_dqn = DQN(env.observation_space.shape[0], num_actions).to_device(device)
+        policy_dqn = DQN(env.observation_space.shape[0], num_actions).to(device)
 
         if is_training:
             memory = ReplayMemory(self.replay_size)
@@ -57,6 +57,11 @@ class Agent:
 
                 new_state = torch.tensor(new_state, device=device, dtype=torch.float)
                 reward = torch.tensor(reward, device=device, dtype=torch.float)
+
+                if is_training:
+                    memory.append((state, action, new_state, reward, terminated))
+
+                state = new_state
 
             rewards_per_episode.append(episode_reward)
             epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min)

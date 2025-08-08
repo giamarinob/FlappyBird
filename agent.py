@@ -92,21 +92,24 @@ class Agent:
                 step_counter = 0
 
     def optimize(self, mini_batch, policy_dqn, target_dqn):
-        for state, action, new_state, reward, terminated in mini_batch:
-            if terminated:
-                target = reward
-            else:
-                with torch.no_grad():
-                    target_q = reward + self.discount_factor_g * target_dqn(new_state).max()
+        states, actions, new_states, rewards, terminations = zip(*mini_batch)
+        states = torch.stack(states)
+        actions = torch.stack(actions)
+        new_states = torch.stack(new_states)
+        rewards = torch.stack(rewards)
+        terminations = torch.tensor(terminations).float().to(device)
 
-            current_q = policy_dqn(state)
+        with torch.no_grad():
+            target_q = rewards + (1 - terminations) * self.discount_factor_g * target_dqn(new_states).max(dim=1)[0]
 
-            loss = self.loss_fn(current_q, target_q)
+        current_q = policy_dqn(states).gather(dim=1, index=actions.unsqueeze(dim=1)).squeeze()
 
-            # Optimize
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+        loss = self.loss_fn(current_q, target_q)
+
+        # Optimize
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
 if __name__ == "__main__":
     agent = Agent("flappybird")

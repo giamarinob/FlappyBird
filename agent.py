@@ -1,6 +1,7 @@
 import flappy_bird_gymnasium
 import gymnasium
 import torch
+from torch import nn
 from dqn import DQN
 from experience_replay import ReplayMemory
 import itertools
@@ -23,6 +24,11 @@ class Agent:
         self.epsilon_min = hyperparameters['epsilon_min']
         self.env_id = hyperparameters['env_id']
         self.network_sync_rate = hyperparameters['network_sync_rate']
+        self.learning_rate_a = hyperparameters['learning_rate_a']
+        self.discount_factor_g = hyperparameters['discount_factor_g']
+
+        self.loss_fn = nn.MSELoss()
+        self.optimizer = None
 
     def run(self, is_training=True, render=False):
         env = gymnasium.make("FlappyBird-v0", render_mode="human" if render else None, use_lidar=False)
@@ -43,6 +49,8 @@ class Agent:
             target_dqn.load_state_dict(policy_dqn.state_dict())
 
             step_counter = 0
+
+            self.optimizer = torch.optim.Adam(policy_dqn.parameters(), lr=self.learning_rate_a)
 
         for episode in itertools.count():
             state, _ = env.reset()

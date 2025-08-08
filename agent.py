@@ -13,7 +13,7 @@ class Agent:
         num_states = env.observation_space.shape[0]
         num_actions = env.action_space.n
 
-        policy_dqn = DQN(env.observation_space.shape[0], env.action_space.n).to_device(device)
+        policy_dqn = DQN(env.observation_space.shape[0], num_actions).to_device(device)
 
         obs, _ = env.reset()
         while True:

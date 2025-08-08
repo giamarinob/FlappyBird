@@ -2,6 +2,7 @@ import flappy_bird_gymnasium
 import gymnasium
 import torch
 from dqn import DQN
+from experience_replay import ReplayMemory
 
 device = torch.device("mps" if torch.backends.mps.is_available() else (
     "cuda" if torch.cuda.is_available() else "cpu"))
@@ -15,15 +16,19 @@ class Agent:
 
         policy_dqn = DQN(env.observation_space.shape[0], num_actions).to_device(device)
 
-        obs, _ = env.reset()
+        if is_training:
+            memory = ReplayMemory(10000)
+
+        state, _ = env.reset()
         while True:
             # Next action:
             # (feed the observation to your agent here)
             action = env.action_space.sample()
 
             # Processing:
-            obs, reward, terminated, _, info = env.step(action)
+            new_state, reward, terminated, _, info = env.step(action)
 
+            state = new_state
             # Checking if the player is still alive
             if terminated:
                 break

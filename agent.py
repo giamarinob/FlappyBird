@@ -4,11 +4,24 @@ import torch
 from dqn import DQN
 from experience_replay import ReplayMemory
 import itertools
+import yaml
 
 device = torch.device("mps" if torch.backends.mps.is_available() else (
     "cuda" if torch.cuda.is_available() else "cpu"))
 
 class Agent:
+    def __init__(self, hyperparameter_set):
+        with open("hyperparameters .yaml", 'r') as file:
+            all_hyperparameters = yaml.safe_load(file)
+            hyperparameters = all_hyperparameters[hyperparameter_set]
+
+        self.replay_size = hyperparameters['replay_memory_size']
+        self.mini_batch_size = hyperparameters['mini_batch_size']
+        self.epsilon_init = hyperparameters['epsilon_init']
+        self.epsilon_decay = hyperparameters['epsilon_decay']
+        self.epsilon_min = hyperparameters['epsilon_min']
+        self.env_id = hyperparameters['env_id']
+
     def run(self, is_training=True, render=False):
         env = gymnasium.make("FlappyBird-v0", render_mode="human" if render else None, use_lidar=False)
         num_states = env.observation_space.shape[0]
@@ -17,7 +30,7 @@ class Agent:
         policy_dqn = DQN(env.observation_space.shape[0], num_actions).to_device(device)
 
         if is_training:
-            memory = ReplayMemory(10000)
+            memory = ReplayMemory(self.replay_size)
 
         for epsiode in itertools.count():
             state, _ = env.reset()

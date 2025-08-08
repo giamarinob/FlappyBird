@@ -5,6 +5,7 @@ from dqn import DQN
 from experience_replay import ReplayMemory
 import itertools
 import yaml
+import random
 
 device = torch.device("mps" if torch.backends.mps.is_available() else (
     "cuda" if torch.cuda.is_available() else "cpu"))
@@ -27,20 +28,25 @@ class Agent:
         num_states = env.observation_space.shape[0]
         num_actions = env.action_space.n
         rewards_per_episode = []
+        epsilon_history = []
         policy_dqn = DQN(env.observation_space.shape[0], num_actions).to_device(device)
 
         if is_training:
             memory = ReplayMemory(self.replay_size)
 
-        for epsiode in itertools.count():
+            epsilon = self.epsilon_init
+
+
+        for episode in itertools.count():
             state, _ = env.reset()
             terminated = False
             episode_reward = 0.0
 
             while not terminated:
-                # Next action:
-                # (feed the observation to your agent here)
-                action = env.action_space.sample()
+                if is_training and random.random() < epsilon:
+                    action = env.action_space.sample()
+                else:
+                    action = policy_dqn(state).argmax()
 
                 # Processing:
                 new_state, reward, terminated, _, info = env.step(action)
@@ -49,3 +55,5 @@ class Agent:
                 state = new_state
 
             rewards_per_episode.append(episode_reward)
+            epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min)
+            epsilon_history.append(epsilon)

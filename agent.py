@@ -22,6 +22,7 @@ class Agent:
         self.epsilon_decay = hyperparameters['epsilon_decay']
         self.epsilon_min = hyperparameters['epsilon_min']
         self.env_id = hyperparameters['env_id']
+        self.network_sync_rate = hyperparameters['network_sync_rate']
 
     def run(self, is_training=True, render=False):
         env = gymnasium.make("FlappyBird-v0", render_mode="human" if render else None, use_lidar=False)
@@ -29,13 +30,19 @@ class Agent:
         num_actions = env.action_space.n
         rewards_per_episode = []
         epsilon_history = []
-        policy_dqn = DQN(env.observation_space.shape[0], num_actions).to(device)
+
+        # Networks
+        policy_dqn = DQN(num_states, num_actions).to(device)
 
         if is_training:
             memory = ReplayMemory(self.replay_size)
 
             epsilon = self.epsilon_init
 
+            target_dqn = DQN(num_states, num_actions).to(device)
+            target_dqn.load_state_dict(policy_dqn.state_dict())
+
+            step_counter = 0
 
         for episode in itertools.count():
             state, _ = env.reset()
@@ -60,12 +67,38 @@ class Agent:
 
                 if is_training:
                     memory.append((state, action, new_state, reward, terminated))
+                    step_counter += 1
 
                 state = new_state
 
             rewards_per_episode.append(episode_reward)
             epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min)
             epsilon_history.append(epsilon)
+
+            if len(memory) > self.mini_batch_size:
+                mini_batch = memory.sample(self.mini_batch_size)
+                self.optimize(mini_batch, policy_dqn, target_dqn)
+
+            if step_counter > self.network_sync_rate:
+                target_dqn.load_state_dict(policy_dqn.state_dict())
+                step_counter = 0
+
+    def optimize(self, mini_batch, policy_dqn, target_dqn):
+        for state, action, new_state, reward, terminated in mini_batch:
+            if terminated:
+                target = reward
+            else:
+                with torch.no_grad():
+                    target_q = reward + self.discount_factor_g * target_dqn(new_state).max()
+
+            current_q = policy_dqn(state)
+
+            loss = self.loss_fn(current_q, target_q)
+
+            # Optimize
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
 
 if __name__ == "__main__":
     agent = Agent("flappybird")

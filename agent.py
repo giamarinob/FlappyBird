@@ -61,3 +61,7 @@ class Agent:
             rewards_per_episode.append(episode_reward)
             epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min)
             epsilon_history.append(epsilon)
+
+if __name__ == "__main__":
+    agent = Agent("flappybird")
+    agent.run(is_training=True, render=True)

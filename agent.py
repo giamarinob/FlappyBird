@@ -12,7 +12,7 @@ device = torch.device("mps" if torch.backends.mps.is_available() else (
 
 class Agent:
     def __init__(self, hyperparameter_set):
-        with open("hyperparameters .yaml", 'r') as file:
+        with open("hyperparameters.yaml", 'r') as file:
             all_hyperparameters = yaml.safe_load(file)
             hyperparameters = all_hyperparameters[hyperparameter_set]
 

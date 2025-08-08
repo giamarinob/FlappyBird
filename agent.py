@@ -61,7 +61,7 @@ class Agent:
             while not terminated:
                 if is_training and random.random() < epsilon:
                     action = env.action_space.sample()
-                    action = torch.tensor(action, device=device, dtype=torch.float)
+                    action = torch.tensor(action, device=device, dtype=torch.int64)
                 else:
                     with torch.no_grad():
                         action = policy_dqn(state.unsqueeze(dim=0)).squeeze().argmax()

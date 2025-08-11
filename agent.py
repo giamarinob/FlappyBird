@@ -7,6 +7,12 @@ from experience_replay import ReplayMemory
 import itertools
 import yaml
 import random
+import os
+
+DATE_FORMAT = '%m-%d %H:%M:%S'
+
+RUNS_DIR = 'runs'
+os.makedirs(RUNS_DIR, exist_ok=True)
 
 device = torch.device("mps" if torch.backends.mps.is_available() else (
     "cuda" if torch.cuda.is_available() else "cpu"))
@@ -17,6 +23,7 @@ class Agent:
             all_hyperparameters = yaml.safe_load(file)
             hyperparameters = all_hyperparameters[hyperparameter_set]
 
+        # Set values from hyperparameters.yaml
         self.replay_size = hyperparameters['replay_memory_size']
         self.mini_batch_size = hyperparameters['mini_batch_size']
         self.epsilon_init = hyperparameters['epsilon_init']
@@ -27,8 +34,14 @@ class Agent:
         self.learning_rate_a = hyperparameters['learning_rate_a']
         self.discount_factor_g = hyperparameters['discount_factor_g']
 
+        # Loss Calculation
         self.loss_fn = nn.MSELoss()
         self.optimizer = None
+
+        # Logging
+        self.LOG_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.log')
+        self.MODEL_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.model')
+        self.GRAPH_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.png')
 
     def run(self, is_training=True, render=False):
         env = gymnasium.make("FlappyBird-v0", render_mode="human" if render else None, use_lidar=False)

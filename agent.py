@@ -65,6 +65,12 @@ class Agent:
 
             self.optimizer = torch.optim.Adam(policy_dqn.parameters(), lr=self.learning_rate_a)
 
+            best_reward = -99999999
+        else:
+            policy_dqn.load_state_dict(torch.load(self.MODEL_FILE))
+
+            policy_dqn.eval()
+
         for episode in itertools.count():
             state, _ = env.reset()
             state = torch.tensor(state, device=device, dtype=torch.float)

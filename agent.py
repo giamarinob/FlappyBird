@@ -1,3 +1,5 @@
+import argparse
+
 import flappy_bird_gymnasium
 import gymnasium
 import torch
@@ -201,5 +203,14 @@ class Agent:
         plt.close(fig)
 
 if __name__ == "__main__":
-    agent = Agent("flappybird")
-    agent.run(is_training=True, render=True)
+    parser = argparse.ArgumentParser(description="Train or test model.")
+    parser.add_argument('hyperparameters', help==)
+    parser.add_argument('--train', help='Training Mode', action='store_true')
+    args = parser.parse_args()
+
+    dql= Agent(hyperparameter_set=args.hyperparameters)
+
+    if args.train:
+        dql.run(is_training=True, render=True)
+    else:
+        dql.run(is_training=False, render=True)

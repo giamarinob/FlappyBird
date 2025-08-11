@@ -38,6 +38,7 @@ class Agent:
         self.learning_rate_a = hyperparameters['learning_rate_a']
         self.discount_factor_g = hyperparameters['discount_factor_g']
         self.stop_on_reward = hyperparameters['stop_on_reward']
+        self.fc1_nodes = hyperparameters['fc1_nodes']
 
         # Loss Calculation
         self.loss_fn = nn.MSELoss()
@@ -67,7 +68,7 @@ class Agent:
         epsilon_history = []
 
         # Networks
-        policy_dqn = DQN(num_states, num_actions).to(device)
+        policy_dqn = DQN(num_states, num_actions, self.fc1_nodes).to(device)
 
         if is_training:
             start_time = datetime.now()
@@ -82,7 +83,7 @@ class Agent:
 
             epsilon = self.epsilon_init
 
-            target_dqn = DQN(num_states, num_actions).to(device)
+            target_dqn = DQN(num_states, num_actions, self.fc1_nodes).to(device)
             target_dqn.load_state_dict(policy_dqn.state_dict())
 
             step_counter = 0

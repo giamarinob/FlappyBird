@@ -40,7 +40,7 @@ class Agent:
 
         # Logging
         self.LOG_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.log')
-        self.MODEL_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.model')
+        self.MODEL_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.pt')
         self.GRAPH_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.png')
 
     def run(self, is_training=True, render=False):

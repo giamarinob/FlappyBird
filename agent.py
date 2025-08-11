@@ -1,6 +1,7 @@
 import flappy_bird_gymnasium
 import gymnasium
 import torch
+from matplotlib import pyplot as plt
 from torch import nn
 from dqn import DQN
 from experience_replay import ReplayMemory
@@ -9,6 +10,7 @@ import yaml
 import random
 import os
 from datetime import datetime
+import np
 
 DATE_FORMAT = '%m-%d %H:%M:%S'
 
@@ -46,6 +48,16 @@ class Agent:
         self.GRAPH_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.png')
 
     def run(self, is_training=True, render=False):
+        """
+        Runs the agent and saves the results to disk.
+
+        Args:
+            is_training:
+            render:
+
+        Returns:
+
+        """
         env = gymnasium.make("FlappyBird-v0", render_mode="human" if render else None, use_lidar=False)
         num_states = env.observation_space.shape[0]
         num_actions = env.action_space.n
@@ -128,7 +140,16 @@ class Agent:
                 target_dqn.load_state_dict(policy_dqn.state_dict())
                 step_counter = 0
 
+
     def optimize(self, mini_batch, policy_dqn, target_dqn):
+        """
+        Optimze policy network.
+
+        Args:
+            mini_batch:
+            policy_dqn:
+            target_dqn:
+        """
         states, actions, new_states, rewards, terminations = zip(*mini_batch)
         states = torch.stack(states)
         actions = torch.stack(actions)
@@ -147,6 +168,37 @@ class Agent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+    def save_graph(self, rewards_per_episode, epsilon_history):
+        """
+        Plot mean rewards and epislon decay.
+
+        Args:
+            rewards_per_episode:
+            epsilon_history:
+
+        Returns:
+
+        """
+        fig = plt.figure(1)
+
+        mean_rewards = np.zeros(len(rewards_per_episode), 2)
+        for x in range(len(mean_rewards)):
+            mean_rewards[x] = np.mean(rewards_per_episode[max(0, x - 99):(x + 1)])
+        plt.subplot(121)
+        plt.xlabel('Episodes')
+        plt.ylabel('Mean Rewards')
+        plot.plot(mean_rewards)
+
+        plt.subplot(122)
+        plt.xlabel('Time Steps')
+        ply.ylabel('Epsilon Decay')
+        plt.plot(epsilon_history)
+
+        plt.subplots_adjust(w_space=1.0, hspace=1.0)
+
+        fig.savefig(self.GRAPH_FILE)
+        plt.close(fig)
 
 if __name__ == "__main__":
     agent = Agent("flappybird")

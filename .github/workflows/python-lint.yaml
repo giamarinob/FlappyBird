@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint_and_format:
-    runs-on: ubuntu-latest  # Runs on the latest Ubuntu environment
+    runs-on: ubuntu-20.04  # Runs on the latest Ubuntu environment
 
     steps:
     - name: Checkout code

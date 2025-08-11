@@ -8,6 +8,7 @@ import itertools
 import yaml
 import random
 import os
+from datetime import datetime
 
 DATE_FORMAT = '%m-%d %H:%M:%S'
 
@@ -33,6 +34,7 @@ class Agent:
         self.network_sync_rate = hyperparameters['network_sync_rate']
         self.learning_rate_a = hyperparameters['learning_rate_a']
         self.discount_factor_g = hyperparameters['discount_factor_g']
+        self.stop_on_reward = hyperparameters['stop_on_reward']
 
         # Loss Calculation
         self.loss_fn = nn.MSELoss()
@@ -77,7 +79,7 @@ class Agent:
             terminated = False
             episode_reward = 0.0
 
-            while not terminated:
+            while not terminated and episode_reward < self.stop_on_reward:
                 if is_training and random.random() < epsilon:
                     action = env.action_space.sample()
                     action = torch.tensor(action, device=device, dtype=torch.int64)
@@ -99,6 +101,22 @@ class Agent:
                 state = new_state
 
             rewards_per_episode.append(episode_reward)
+
+            if is_training:
+                if episode_reward > best_reward:
+                    log_message = f"{datetime.now().strftime(DATE_FORMAT)}: New best reward {episode_reward:0.1f} -> {best_reward:.2f}"
+                    print(log_message)
+                    with open(self.LOG_FILE, 'a') as file:
+                        file.write(log_message + '\n')
+
+                    torch.save(policy_dqn.state_dict(), self.MODEL_FILE)
+                    best_reward = episode_reward
+
+                current_time = datetime.now()
+                if current_time - last_graph_updated_time > datetime.timedelta(second=10):
+                    self.save_graph(rewards_per_episode, epsilon_history)
+                    last_graph_updated_time = current_time
+
             epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min)
             epsilon_history.append(epsilon)
 

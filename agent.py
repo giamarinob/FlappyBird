@@ -1,5 +1,4 @@
 import argparse
-
 import flappy_bird_gymnasium
 import gymnasium
 import torch

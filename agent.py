@@ -11,8 +11,8 @@ import itertools
 import yaml
 import random
 import os
-from datetime import datetime
-import np
+from datetime import datetime, timedelta
+import numpy as np
 
 DATE_FORMAT = '%m-%d %H:%M:%S'
 
@@ -45,6 +45,7 @@ class Agent:
         self.optimizer = None
 
         # Logging
+        self.last_graph_update_time = datetime.now()
         self.LOG_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.log')
         self.MODEL_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.pt')
         self.GRAPH_FILE = os.path.join(RUNS_DIR, f'{hyperparameter_set}.png')
@@ -70,6 +71,14 @@ class Agent:
         policy_dqn = DQN(num_states, num_actions).to(device)
 
         if is_training:
+            start_time = datetime.now()
+            self.last_graph_update_time = start_time
+
+            log_message = f"{start_time.strftime(DATE_FORMAT)}: Training starting..."
+            print(log_message)
+            with open(self.LOG_FILE, 'w') as file:
+                file.write(log_message + '\n')
+
             memory = ReplayMemory(self.replay_size)
 
             epsilon = self.epsilon_init
@@ -127,7 +136,7 @@ class Agent:
                     best_reward = episode_reward
 
                 current_time = datetime.now()
-                if current_time - last_graph_updated_time > datetime.timedelta(second=10):
+                if current_time - self.last_graph_update_time > timedelta(seconds=10):
                     self.save_graph(rewards_per_episode, epsilon_history)
                     last_graph_updated_time = current_time
 
@@ -184,27 +193,27 @@ class Agent:
         """
         fig = plt.figure(1)
 
-        mean_rewards = np.zeros(len(rewards_per_episode), 2)
+        mean_rewards = np.zeros(len(rewards_per_episode))
         for x in range(len(mean_rewards)):
             mean_rewards[x] = np.mean(rewards_per_episode[max(0, x - 99):(x + 1)])
         plt.subplot(121)
         plt.xlabel('Episodes')
         plt.ylabel('Mean Rewards')
-        plot.plot(mean_rewards)
+        plt.plot(mean_rewards)
 
         plt.subplot(122)
         plt.xlabel('Time Steps')
-        ply.ylabel('Epsilon Decay')
+        plt.ylabel('Epsilon Decay')
         plt.plot(epsilon_history)
 
-        plt.subplots_adjust(w_space=1.0, hspace=1.0)
+        plt.subplots_adjust(wspace=1.0, hspace=1.0)
 
         fig.savefig(self.GRAPH_FILE)
         plt.close(fig)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train or test model.")
-    parser.add_argument('hyperparameters', help==)
+    parser.add_argument('hyperparameters', help='')
     parser.add_argument('--train', help='Training Mode', action='store_true')
     args = parser.parse_args()
 

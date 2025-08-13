@@ -1,17 +1,19 @@
 import argparse
+import itertools
+import os
+import random
+from datetime import datetime, timedelta
+
 import flappy_bird_gymnasium
 import gymnasium
+import numpy as np
 import torch
+import yaml
 from matplotlib import pyplot as plt
 from torch import nn
+
 from dqn import DQN
 from experience_replay import ReplayMemory
-import itertools
-import yaml
-import random
-import os
-from datetime import datetime, timedelta
-import numpy as np
 
 DATE_FORMAT = "%m-%d %H:%M:%S"
 
@@ -112,6 +114,7 @@ class Agent:
 
             while not terminated and episode_reward < self.stop_on_reward:
                 if is_training and random.random() < epsilon:
+
                     action = env.action_space.sample()
                     action = torch.tensor(action, device=device, dtype=torch.int64)
                 else:

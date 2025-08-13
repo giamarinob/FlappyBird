@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint_and_format:
-    runs-on: ubuntu-20.04  # Runs on the latest Ubuntu environment
+    runs-on: ubuntu-latest  # Runs on the latest Ubuntu environment
 
     steps:
     - name: Checkout code
@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9.6  # Specify the Python version you are using
+        python-version: 3.9.23  # Specify the Python version you are using
 
     - name: Install dependencies
       run: |

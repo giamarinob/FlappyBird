@@ -11,37 +11,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Checkout repository
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # 1. Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # 2. Set up Python
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.9.23  # or 3.10, 3.11, etc.
-        check-latest: true
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9.23  # or 3.10, 3.11, etc.
+          check-latest: true
 
-    # 3. Install dependencies if requirements.txt exists
-    - name: Install dependencies
-      run: |
-        if [ -f requirements.txt ]; then
-          pip install -r requirements.txt
-        fi
-        pip install black flake8 pylint isort
+      # 3. Install dependencies if requirements.txt exists
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          pip install black flake8 pylint isort
 
-    # 4. Run Black (formatting check)
-    - name: Black
-      run: black --check .
+      # 4. Run Black (formatting check)
+      - name: Black
+        run: black --check .
 
-    # 5. Run isort (import sorting check)
-    - name: isort
-      run: isort --check .
+      # 5. Run isort (import sorting check)
+      - name: isort
+        run: isort --check .
 
-    # 6. Run Flake8 (PEP8 + linting)
-    - name: Flake8
-      run: flake8 .
+      # 6. Run Flake8 (PEP8 + linting)
+      - name: Flake8
+        run: flake8 .
 
     # 7. Run Pylint (code quality)
-    - name: Pylint
-      run: pylint **/*.py || exit 0  # don't fail workflow if warnings only
+#    - name: Pylint
+#      run: pylint **/*.py || exit 0  # don't fail workflow if warnings only

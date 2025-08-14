@@ -34,6 +34,7 @@ class Agent:
             hyperparameters = all_hyperparameters[hyperparameter_set]
 
         # Set values from hyperparameters.yaml
+        self.env_id = hyperparameters["env_id"]
         self.replay_size = hyperparameters["replay_memory_size"]
         self.mini_batch_size = hyperparameters["mini_batch_size"]
         self.epsilon_init = hyperparameters["epsilon_init"]
@@ -68,7 +69,7 @@ class Agent:
 
         """
         env = gymnasium.make(
-            "FlappyBird-v0", render_mode="human" if render else None, use_lidar=False
+            self.env_id, render_mode="human" if render else None, use_lidar=False
         )
         num_states = env.observation_space.shape[0]
         num_actions = env.action_space.n
@@ -138,7 +139,7 @@ class Agent:
 
             if is_training:
                 if episode_reward > best_reward:
-                    log_message = f"{datetime.now().strftime(DATE_FORMAT)}: New best reward {episode_reward:0.1f} -> {best_reward:.2f}"
+                    log_message = f"{datetime.now().strftime(DATE_FORMAT)}: New best reward {episode_reward:0.1f} ({(episode_reward-best_reward)/best_reward*100:+.1f}%) at episode {episode}, saving model..."
                     print(log_message)
                     with open(self.LOG_FILE, "a") as file:
                         file.write(log_message + "\n")
@@ -179,11 +180,19 @@ class Agent:
         terminations = torch.tensor(terminations).float().to(device)
 
         with torch.no_grad():
+            # DQN Optimization
+            # target_q = rewards + (1 - terminations) * self.discount_factor_g * target_dqn(new_states).max(dim=1)[0]
+
+            # Double DQN Optimiztion
+            best_action_from_policy = policy_dqn(states).argmax(dim=1)
+
             target_q = (
                 rewards
                 + (1 - terminations)
                 * self.discount_factor_g
-                * target_dqn(new_states).max(dim=1)[0]
+                * target_dqn(new_states)
+                .gather(dim=1, index=best_action_from_policy.unsqueeze(dim=1))
+                .squeeze()
             )
 
         current_q = (
